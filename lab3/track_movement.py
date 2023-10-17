@@ -3,7 +3,7 @@ import numpy as np
 
 class ObjectTracker(object):
     def __init__(self, scaling_factor=1.5):
-        self.cap = cv2.VideoCapture(0)
+        self.cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
         self.scaling_factor = scaling_factor
         cv2.namedWindow('Object Tracker')
         cv2.setMouseCallback('Object Tracker', self.mouse_event)
@@ -35,12 +35,14 @@ class ObjectTracker(object):
         while True:
             _, self.frame = self.cap.read()
             if self.frame is None:
-                break  # Break the loop if the frame is empty or None
+                break
+
+            if self.scaling_factor == 0:
+                print("Error: Scaling factor (fx and fy) is set to zero. Please use a valid scaling factor.")
+                break
 
             self.frame = cv2.resize(self.frame, None, fx=self.scaling_factor, fy=self.scaling_factor, interpolation=cv2.INTER_AREA)
             vis = self.frame.copy()
-            hsv = cv2.cvtColor(self.frame, cv2.COLOR_BGR2HSV)
-            mask = cv2.inRange(hsv, np.array((0., 60., 32.)), np.array((180., 255., 255.)))
 
             if self.selection:
                 x0, y0, x1, y1 = self.selection
@@ -56,12 +58,13 @@ class ObjectTracker(object):
 
             if self.tracking_state == 1 and self.tracker:
                 success, self.track_window = self.tracker.update(self.frame)
-                x, y, w, h = map(int, self.track_window)
-                cv2.rectangle(vis, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                if success:
+                    x, y, w, h = map(int, self.track_window)
+                    cv2.rectangle(vis, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
             cv2.imshow('Object Tracker', vis)
             c = cv2.waitKey(5)
-            if c == 'q':
+            if c == ord('q'):
                 break
 
         cv2.destroyAllWindows()
