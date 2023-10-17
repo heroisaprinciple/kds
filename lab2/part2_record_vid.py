@@ -10,6 +10,7 @@ def record_video(output_file):
 
     # Define the codec and create a VideoWriter object
     fourcc = cv2.VideoWriter_fourcc(*'MP4V')
+    # 20 frames per second
     result = cv2.VideoWriter(output_file, fourcc, 20.0, (720, 480))
 
     while True:
